@@ -40,36 +40,43 @@ public with sharing class AsynchronousTest {
 
     @IsTest
     static void nextStepFuture_testUpdateAllNextStep() {
-        // Use helper method to create accounts
-        List<Account> testAccounts = createTestAccounts(5);
+        // Use helper method to create accounts with even more uniqueness
+        List<Account> testAccounts = new List<Account>();
+        Long timestamp = DateTime.now().getTime();
+        String unique = String.valueOf(Math.random()).substring(2, 8); // Add random numbers
+        
+        for (Integer i = 0; i < 5; i++) {
+            testAccounts.add(new Account(
+                Name = 'Test Account ' + i + '_' + unique + '_' + timestamp
+            ));
+        }
         insert testAccounts;
-
+    
         List<Opportunity> testOpps = new List<Opportunity>();
         for (Account acc : testAccounts) {
             testOpps.add(new Opportunity(Name = 'Test Opp for ' + acc.Name, AccountId = acc.Id, CloseDate = Date.today(), StageName = 'Prospecting'));
         }
         insert testOpps;
-
+    
         // Call the method to test between the startTest and stopTest methods
         Test.startTest();
         NextStepFuture.updateAllNextStep();
         Test.stopTest();
-
+    
         // Query the updated accounts and opportunities
         List<Account> updatedAccounts = [SELECT Id, Next_Step__c FROM Account WHERE Id IN :testAccounts];
         List<Opportunity> updatedOpps = [SELECT Id, NextStep FROM Opportunity WHERE Id IN :testOpps];
-
+    
         // Assert that all account's Next_Step__c fields are updated
         for (Account acc : updatedAccounts) {
             System.assertEquals('Meeting in the future', acc.Next_Step__c, 'Account Next_Step__c field was not updated correctly.');
         }
-
+    
         // Assert that all opportunity's NextStep fields are updated
         for (Opportunity opp : updatedOpps) {
             System.assertEquals('Meeting in the future', opp.NextStep, 'Opportunity NextStep field was not updated correctly.');
         }
     }
-
     @IsTest
     static void nextStepFuture_testCreateDealAndUpdateRole() {        
         Test.startTest();
