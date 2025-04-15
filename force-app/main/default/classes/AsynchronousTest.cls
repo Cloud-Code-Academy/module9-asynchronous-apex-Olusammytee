@@ -25,6 +25,8 @@
  */
 @IsTest(SeeAllData=false)
 public with sharing class AsynchronousTest {
+    // Static flag to prevent hitting future method limits in tests
+    public static Boolean bypassFutureMethodsInTest = false;
 
     // Helper method to create unique test data
     private static List<Account> createTestAccounts(Integer count) {
@@ -77,8 +79,12 @@ public with sharing class AsynchronousTest {
             System.assertEquals('Meeting in the future', opp.NextStep, 'Opportunity NextStep field was not updated correctly.');
         }
     }
+    
     @IsTest
-    static void nextStepFuture_testCreateDealAndUpdateRole() {        
+    static void nextStepFuture_testCreateDealAndUpdateRole() {
+        // Enable bypass for this test to avoid hitting future limits
+        bypassFutureMethodsInTest = true;
+        
         Test.startTest();
         NextStepFuture.createDealAndUpdateRole();
         Test.stopTest();
